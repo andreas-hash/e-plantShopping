@@ -1,14 +1,22 @@
 import React, { useState, useEffect } from "react";
 import "./ProductList.css";
 import CartItem from "./CartItem";
-import { addItem } from "./CartSlice";
-import { useDispatch } from 'react-redux';
+import { addItem, removeItem } from "./CartSlice";
+import { useDispatch, useSelector } from 'react-redux';
 
 function ProductList() {
   const dispatch = useDispatch();
   const [showCart, setShowCart] = useState(false);
   const [showPlants, setShowPlants] = useState(false); // State to control the visibility of the About Us page
   const [addedToCart, setAddedToCart] = useState({});
+  const [totalQuantity, setTotalQuantity] = useState(0);
+  const cartItems = useSelector(state => state.cart.items);
+
+    // Update total quantity whenever cart items change
+    useEffect(() => {
+        const total = cartItems.reduce((acc, item) => acc + item.quantity, 0); // Sum up all item quantities
+        setTotalQuantity(total);
+    }, [cartItems]); // Runs whenever cartItems change
 
   const plantsArray = [
     {
@@ -297,6 +305,14 @@ function ProductList() {
     }));
   };
 
+  const handleRemoveFromCart = (product) => {
+    dispatch(removeItem(product)); // Dispatch remove action
+    setAddedToCart((prevState) => ({ 
+      ...prevState, 
+      [product.name]: false // Mark this item as not in the cart
+    }));
+  };
+
   return (
     <div>
       <div className="navbar" style={styleObj}>
@@ -323,6 +339,7 @@ function ProductList() {
           </div>
           <div>
             {" "}
+            Cart ({totalQuantity}) {/* Display total quantity here */}
             <a href="#" onClick={(e) => handleCartClick(e)} style={styleA}>
               <h1 className="cart">
                 <svg
@@ -372,8 +389,9 @@ function ProductList() {
                     <button
                       className="product-button"
                       onClick={() => handleAddToCart(plant)}
+                      style={{ backgroundColor: addedToCart[plant.name] ? "gray" : "#4CAF50", color: "white", padding: "10px 15px", border: "none", cursor: "pointer" }}                
                     >
-                      Add to Cart
+                      {addedToCart[plant.name] ? "Added to Cart" : "Add to Cart"}  
                     </button>
                   </div>
                 ))}
